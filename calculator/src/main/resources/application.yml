@@ -1,0 +1,17 @@
+spring:
+  profiles:
+    active: prod
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/mytest
+    username: root
+    password: mysql
+    server:
+      port:8080
+    servlet:
+      path"/springboot
+mybatis:
+  #实体类所做包
+  type-aliases-package: com.example.demo.entity
+  #mapper.xml所在位置
+  mapper-locations: classpath:mapper/usermapper/*.xml
