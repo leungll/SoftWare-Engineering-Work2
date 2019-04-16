@@ -69,9 +69,10 @@ public class ExerciseServiceImpl implements ExerciseService {
                 break;
             }
         }
-        str += "=";
+//        str += "=";
+        String str1 = str + "=";
         Calculator calculator = new Calculator();
-        int answer = calculator.NBL(str);
+        int answer = calculator.NBL(str1);
 
         String[] strArr = new String[2];
 //        String finalEx;

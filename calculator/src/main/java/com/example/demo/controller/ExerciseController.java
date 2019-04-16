@@ -3,8 +3,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.example.demo.service.ExerciseService;
 
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -15,8 +19,8 @@ import java.io.*;
  * @Description:
  * @Date: 10:37 2019/4/5
  */
-
-@RestController
+@CrossOrigin
+@Controller
 @RequestMapping("/")
 public class ExerciseController {
 
@@ -27,14 +31,23 @@ public class ExerciseController {
      * 产生练习题
      * @return
      */
+    @ResponseBody
     @RequestMapping("/toCreate")
-    public String CreateFile(){
-        int n = 10;
-        int max = 10 ;
-        int min = 0 ;
-        int maxOper = 5;
-        int is_Bracket = 0;
-        int is_Mul = 2;
+        public String CreateFile(String _n, String _max, String _min, String _maxOper, String _is_Bracket, String _is_Mul){
+//    public String CreateFile(){
+
+//        int n = 4;
+//        int max = 100;
+//        int min = 1;
+//        int maxOper = 3;
+//        int is_Bracket = 1;
+//        int is_Mul = 4;
+        int n = Integer.parseInt(_n);
+        int max = Integer.parseInt(_max);
+        int min = Integer.parseInt(_min);
+        int maxOper = Integer.parseInt(_maxOper);
+        int is_Bracket = Integer.parseInt(_is_Bracket);
+        int is_Mul = Integer.parseInt(_is_Mul);
         JSONArray jsonArray = new JSONArray();
         try {
             File file = new File("../result.txt");
@@ -47,9 +60,6 @@ public class ExerciseController {
             //写文件
             FileWriter fw = new FileWriter(file);
             BufferedWriter bw = new BufferedWriter(fw);
-//            bw.write("2017011581");
-            //换行
-            bw.newLine();
             for (int i = 0; i < n; i++) {
                 String[] strArr = new String[2];
                 strArr= exerciseService.create(min, max, maxOper, is_Mul, is_Bracket);
@@ -60,7 +70,7 @@ public class ExerciseController {
                 bw.newLine();
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("Exercise", ex);
-                jsonObject.put("Answer", ans);
+//                jsonObject.put("Answer", ans);
                 jsonArray.add(jsonObject);
             }
             bw.flush();
@@ -80,7 +90,7 @@ public class ExerciseController {
     public String downloadFile(HttpServletResponse response) {
         String fileName = "result.txt";
         if (fileName != null) {
-            String realPath = "E:\\";
+            String realPath = "C:\\Users\\19161\\Desktop\\sublime";
             File file = new File(realPath, fileName);
             if (file.exists()) {
                 // 设置强制下载不打开
@@ -121,5 +131,63 @@ public class ExerciseController {
             }
         }
         return null;
+    }
+
+    /**
+     * 跳转到文件上传处理页面
+     * @return
+     */
+    @RequestMapping("file")
+    public String file(){
+        return "/test";
+    }
+
+    /**
+     * 文件上传业务逻辑
+     * @param file
+     * @return
+     */
+    @RequestMapping("fileUpload")
+    @ResponseBody
+    public String fileUpload(@RequestParam("fileName") MultipartFile file){
+        if(file.isEmpty()){
+            return "false";
+        }
+        String fileName = file.getOriginalFilename();
+        int size = (int) file.getSize();
+        System.out.println(fileName + "-->" + size);
+
+        String path = "C:\\Users\\19161\\Desktop\\sublime\\calculator\\src\\main\\resources" ;
+        File dest = new File(path + "/" + fileName);
+        //判断文件父目录是否存在
+        if(!dest.getParentFile().exists()){
+            dest.getParentFile().mkdir();
+        }
+        try {
+            //保存文件
+            file.transferTo(dest);
+            ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+            InputStream inputStream = classLoader.getResourceAsStream("result.txt");
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream));
+            JSONArray jsonArray = new JSONArray();
+            StringBuffer buffer = new StringBuffer();
+            String line = null;
+            while ((line = bufferedReader.readLine()) != null){
+                buffer.append(line);
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("Exercise",line);
+                jsonArray.add(jsonObject);
+            }
+            inputStream.close();
+            return jsonArray.toString();
+        } catch (IllegalStateException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return "false";
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            return "false";
+        }
     }
 }
